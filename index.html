@@ -1,61 +1,76 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Darain Khan AI 🤖</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-body{font-family:sans-serif;background:#111;color:#fff;text-align:center;padding:20px}
-input,button{padding:10px;margin:5px;border-radius:8px;border:none;width:80%;max-width:400px}
-button{background:#4CAF50;color:white;cursor:pointer;font-weight:bold}
-#chat{border:1px solid #333;padding:10px;margin-top:20px;text-align:left;max-height:400px;overflow-y:auto;border-radius:10px}
-</style>
-</head>
-<body>
-<h1>Darain Khan AI 🤖</h1>
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <title>Darain Khan AI 🤖</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+    body{font-family:sans-serif;background:#111;color:#fff;text-align:center;padding:20px}
+    input,button{padding:10px;margin:5px;border-radius:8px;border:none;width:80%;max-width:400px}
+    button{background:#4CAF50;color:white;cursor:pointer;font-weight:bold}
+    #chat{border:1px solid #333;padding:10px;margin-top:20px;text-align:left;max-height:400px;overflow-y:auto;border-radius:10px;background:#1a1a1a}
+    </style>
+    </head>
+    <body>
+    <h1>Darain Khan AI 🤖</h1>
 
-<div id="keyBox">
-  <p>Pehli baar API Key daalo</p>
-  <input type="password" id="apiKey" placeholder="API Key yahan paste karo">
-  <button onclick="saveKey()">Save & Start</button>
-</div>
+    <div id="keyBox">
+      <p>Pehli baar API Key daalo</p>
+      <input type="password" id="apiKey" placeholder="API Key yahan paste karo">
+      <button onclick="saveKey()">Save & Start</button>
+    </div>
 
-<div id="chatBox" style="display:none">
-  <div id="chat"></div>
-  <input type="text" id="msg" placeholder="Sawal likho...">
-  <button onclick="sendMsg()">Send</button>
-</div>
+    <div id="chatBox" style="display:none">
+      <div id="chat"></div>
+      <input type="text" id="msg" placeholder="Sawal likho...">
+      <button onclick="sendMsg()">Send</button>
+    </div>
 
-<script>
-let API_KEY = localStorage.getItem("gemini_key");
+    <script>
+    let API_KEY = localStorage.getItem("gemini_key") || localStorage.getItem("gemini_api_key");
 
-if(API_KEY){
-  document.getElementById("keyBox").style.display="none";
-  document.getElementById("chatBox").style.display="block";
-}
+    if(API_KEY){
+      document.getElementById("keyBox").style.display="none";
+      document.getElementById("chatBox").style.display="block";
+    }
 
-function saveKey(){
-  API_KEY = document.getElementById("apiKey").value;
-  localStorage.setItem("gemini_key", API_KEY);
-  document.getElementById("keyBox").style.display="none";
-  document.getElementById("chatBox").style.display="block";
-}
+    function saveKey(){
+      API_KEY = document.getElementById("apiKey").value.trim();
+      if(!API_KEY) return alert("Key khali hai!");
+      localStorage.setItem("gemini_key", API_KEY);
+      document.getElementById("keyBox").style.display="none";
+      document.getElementById("chatBox").style.display="block";
+    }
 
-async function sendMsg(){
-  let msg = document.getElementById("msg").value;
-  if(!msg) return;
-  document.getElementById("chat").innerHTML += "<b>Tum:</b> " + msg + "<br>";
-  document.getElementById("msg").value = "";
+    async function sendMsg(){
+      let msg = document.getElementById("msg").value;
+      if(!msg) return;
+      document.getElementById("chat").innerHTML += "<b>Tum:</b> " + msg + "<br>";
+      document.getElementById("msg").value = "";
+      document.getElementById("chat").innerHTML += "<b>AI:</b> Soch raha hun...<br>";
 
-  let res = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key="+API_KEY,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({contents:[{parts:[{text:msg}]}]})
-  });
-  let data = await res.json();
-  let reply = data.candidates[0].content.parts[0].text;
-  document.getElementById("chat").innerHTML += "<b>AI:</b> " + reply + "<br><br>";
-  document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
-}
-</script>
-</body>
-</html>
+      try {
+        let res = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key="+API_KEY,{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({contents:[{parts:[{text:msg}]}]})
+        });
+
+        let data = await res.json();
+        let chatDiv = document.getElementById("chat");
+        chatDiv.innerHTML = chatDiv.innerHTML.replace("<b>AI:</b> Soch raha hun...<br>", "");
+
+        if(data.error){
+          chatDiv.innerHTML += "<b>AI:</b> Error: " + data.error.message + "<br><br>";
+        } else {
+          let reply = data.candidates[0].content.parts[0].text;
+          chatDiv.innerHTML += "<b>AI:</b> " + reply + "<br><br>";
+        }
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+
+      } catch(err){
+        document.getElementById("chat").innerHTML += "<b>AI:</b> Kuch ghalat ho gaya: " + err + "<br><br>";
+      }
+    }
+    </script>
+    </body>
+    </html>
