@@ -57,4 +57,20 @@ async function sendMsg(){
 
     let data = await res.json();
     let chatDiv = document.getElementById("chat");
-    chatDiv.innerHTML = chatDiv.innerHTML.replace("<b>AI
+    chatDiv.innerHTML = chatDiv.innerHTML.replace("<b>AI:</b> Soch raha hun...<br>", "");
+
+    if(data.error){
+      chatDiv.innerHTML += "<b>AI:</b> Error: " + data.error.message + "<br><br>";
+    } else {
+      let reply = data.candidates[0].content.parts[0].text;
+      chatDiv.innerHTML += "<b>AI:</b> " + reply + "<br><br>";
+    }
+    chatDiv.scrollTop = chatDiv.scrollHeight;
+
+  } catch(err){
+    document.getElementById("chat").innerHTML += "<b>AI:</b> Kuch ghalat ho gaya: " + err + "<br><br>";
+  }
+}
+</script>
+</body>
+</html>
