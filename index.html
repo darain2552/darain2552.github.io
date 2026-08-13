@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Darain Khan AI</title>
+<style>
+body{background:#0f0f0f;color:#fff;font-family:Arial;text-align:center;padding:20px}
+h1{color:#00ff88}
+#keyBox,#chatBox{background:#1a1a1a;padding:20px;border-radius:10px;max-width:500px;margin:auto}
+input{width:90%;padding:10px;margin:10px 0;border:none;border-radius:5px}
+button{background:#00ff88;color:#000;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;font-weight:bold}
+#chat{height:300px;overflow-y:auto;text-align:left;background:#000;padding:10px;border-radius:5px;margin:10px 0}
+.user{color:#00ff88}.ai{color:#00aaff}
+</style>
+</head>
+<body>
+<h1>Darain Khan AI 🤖</h1>
+
+<div id="keyBox">
+  <h3>Pehli baar API Key daalo</h3>
+  <input type="password" id="apiKey" placeholder="Apni Gemini API Key yahan paste karo">
+  <br><button onclick="saveKey()">Save & Start</button>
+</div>
+
+<div id="chatBox" style="display:none;">
+  <div id="chat"></div>
+  <input type="text" id="msg" placeholder="Sawal likho...">
+  <br><button onclick="sendMsg()">Send</button>
+</div>
+
+<script>
+let API_KEY = localStorage.getItem("gemini_key");
+if(API_KEY){document.getElementById("keyBox").style.display="none";document.getElementById("chatBox").style.display="block";}
+
+function saveKey(){
+  API_KEY = document.getElementById("apiKey").value;
+  localStorage.setItem("gemini_key",API_KEY);
+  location.reload();
+}
+
+async function sendMsg(){
+  let msg = document.getElementById("msg").value;
+  document.getElementById("chat").innerHTML += `<p class="user"><b>Tum:</b> ${msg}</p>`;
+  document.getElementById("msg").value = "";
+  
+  let res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({contents:[{parts:[{text:msg}]}]})
+  });
+  let data = await res.json();
+  let reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Error: "+JSON.stringify(data.error);
+  document.getElementById("chat").innerHTML += `<p class="ai"><b>AI:</b> ${reply}</p>`;
+}
+</script>
+</body>
+</html>
